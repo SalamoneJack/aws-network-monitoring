@@ -1,0 +1,3 @@
+region      = "us-east-1"
+vpc_id      = ""           # Leave empty to create a test VPC, or set to "vpc-xxxxxxxx"
+alarm_email = ""           # Optional: "you@email.com" to receive alarm notifications
