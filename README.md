@@ -8,6 +8,14 @@
 
 Network observability infrastructure for AWS VPCs: VPC Flow Logs captured to CloudWatch Logs, a CloudWatch dashboard showing traffic patterns, and alarms for anomalous behavior. Includes a set of Logs Insights queries for real troubleshooting scenarios — the kind of thing you'd use during an actual incident.
 
+> ### Deployed against a real workload
+>
+> Pointed at a production VPC (the BGP lab's cloud router subnet), the dashboard captured real accepted traffic, internet-scanner REJECT records, and the CloudWatch alarm tracking rejected-packet-rate. **`max_aggregation_interval=60s` overrides the AWS default of 600s** to surface incidents in ~2 minutes instead of 10+.
+>
+> ![CloudWatch Network-Overview dashboard with real traffic data](screenshots/console-dashboard.png)
+>
+> **Full deployment evidence, Logs Insights captures, alarm config:** [`screenshots/`](screenshots/)
+
 ## The Problem
 
 Building a network is the easy part. Knowing what's happening on it is the hard part. In production, you need answers to questions like:
