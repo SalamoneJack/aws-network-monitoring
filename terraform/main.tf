@@ -61,11 +61,12 @@ resource "aws_iam_role_policy" "flow_logs" {
 # ── VPC Flow Log ──────────────────────────────────────────────────────────────
 
 resource "aws_flow_log" "main" {
-  vpc_id          = local.target_vpc_id
-  traffic_type    = "ALL"
-  iam_role_arn    = aws_iam_role.flow_logs.arn
-  log_destination = aws_cloudwatch_log_group.flow_logs.arn
-  tags            = { Name = "vpc-flow-log" }
+  vpc_id                   = local.target_vpc_id
+  traffic_type             = "ALL"
+  iam_role_arn             = aws_iam_role.flow_logs.arn
+  log_destination          = aws_cloudwatch_log_group.flow_logs.arn
+  max_aggregation_interval = 60
+  tags                     = { Name = "vpc-flow-log" }
 }
 
 # ── CloudWatch Metric Filters ─────────────────────────────────────────────────
