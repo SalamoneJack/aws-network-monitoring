@@ -6,15 +6,15 @@
 ![VPC Flow Logs](https://img.shields.io/badge/VPC-Flow_Logs-blue)
 ![Status](https://img.shields.io/badge/Status-Complete-brightgreen)
 
-Network observability infrastructure for AWS VPCs: VPC Flow Logs captured to CloudWatch Logs, a CloudWatch dashboard showing traffic patterns, and alarms for anomalous behavior. Includes a set of Logs Insights queries for real troubleshooting scenarios — the kind of thing you'd use during an actual incident.
+Network observability infrastructure for AWS VPCs: VPC Flow Logs captured to CloudWatch Logs, a CloudWatch dashboard showing traffic patterns, and alarms for anomalous behavior. Includes a set of Logs Insights queries for real troubleshooting scenarios â€” the kind of thing you'd use during an actual incident.
 
 > ### Deployed against a real workload
 >
 > Pointed at a production VPC (the BGP lab's cloud router subnet), the dashboard captured real accepted traffic, internet-scanner REJECT records, and the CloudWatch alarm tracking rejected-packet-rate. **`max_aggregation_interval=60s` overrides the AWS default of 600s** to surface incidents in ~2 minutes instead of 10+.
 >
-> ![CloudWatch Network-Overview dashboard with real traffic data](screenshots/console-dashboard.png)
+> ![CloudWatch Network-Overview dashboard with real traffic data](evidence/console-dashboard.png)
 >
-> **Full deployment evidence, Logs Insights captures, alarm config:** [`screenshots/`](screenshots/)
+> **Full deployment evidence, Logs Insights captures, alarm config:** [`evidence/`](evidence/)
 
 ## The Problem
 
@@ -25,38 +25,38 @@ Building a network is the easy part. Knowing what's happening on it is the hard 
 - What's the source of this sudden bandwidth spike?
 - Did that connection from the internet actually reach my instance?
 
-VPC Flow Logs answer all of these. This lab sets up the infrastructure to collect, query, and alert on flow log data — the network operations layer that turns a demo into something production-ready.
+VPC Flow Logs answer all of these. This lab sets up the infrastructure to collect, query, and alert on flow log data â€” the network operations layer that turns a demo into something production-ready.
 
 ## Architecture
 
 ```
-┌──────────────────────────────────────────────────────────────────┐
-│  VPC (any of the lab VPCs)                                       │
-│                                                                  │
-│  ┌──────────┐  ┌──────────┐  ┌──────────┐                       │
-│  │  EC2     │  │  EC2     │  │  RDS     │  ← Traffic sources    │
-│  └────┬─────┘  └────┬─────┘  └────┬─────┘                       │
-│       │              │              │                            │
-│       └──────────────┴──────────────┘                            │
-│                       │                                          │
-│              [VPC Flow Logs]                                     │
-└───────────────────────┼──────────────────────────────────────────┘
-                         │
-                         ▼
-              ┌─────────────────────┐
-              │  CloudWatch Logs    │
-              │  Log Group:         │
-              │  /vpc/flow-logs     │
-              └──────────┬──────────┘
-                          │
-          ┌───────────────┼───────────────┐
-          │               │               │
-          ▼               ▼               ▼
-  ┌──────────────┐ ┌──────────────┐ ┌──────────────┐
-  │  Logs        │ │  CloudWatch  │ │  CloudWatch  │
-  │  Insights    │ │  Dashboard   │ │  Alarms      │
-  │  (queries)   │ │  (metrics)   │ │  (alerts)    │
-  └──────────────┘ └──────────────┘ └──────────────┘
+â”Œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”
+â”‚  VPC (any of the lab VPCs)                                       â”‚
+â”‚                                                                  â”‚
+â”‚  â”Œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”  â”Œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”  â”Œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”                       â”‚
+â”‚  â”‚  EC2     â”‚  â”‚  EC2     â”‚  â”‚  RDS     â”‚  â† Traffic sources    â”‚
+â”‚  â””â”€â”€â”€â”€â”¬â”€â”€â”€â”€â”€â”˜  â””â”€â”€â”€â”€â”¬â”€â”€â”€â”€â”€â”˜  â””â”€â”€â”€â”€â”¬â”€â”€â”€â”€â”€â”˜                       â”‚
+â”‚       â”‚              â”‚              â”‚                            â”‚
+â”‚       â””â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”´â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”˜                            â”‚
+â”‚                       â”‚                                          â”‚
+â”‚              [VPC Flow Logs]                                     â”‚
+â””â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”¼â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”˜
+                         â”‚
+                         â–¼
+              â”Œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”
+              â”‚  CloudWatch Logs    â”‚
+              â”‚  Log Group:         â”‚
+              â”‚  /vpc/flow-logs     â”‚
+              â””â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”¬â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”˜
+                          â”‚
+          â”Œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”¼â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”
+          â”‚               â”‚               â”‚
+          â–¼               â–¼               â–¼
+  â”Œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â” â”Œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â” â”Œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”
+  â”‚  Logs        â”‚ â”‚  CloudWatch  â”‚ â”‚  CloudWatch  â”‚
+  â”‚  Insights    â”‚ â”‚  Dashboard   â”‚ â”‚  Alarms      â”‚
+  â”‚  (queries)   â”‚ â”‚  (metrics)   â”‚ â”‚  (alerts)    â”‚
+  â””â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”˜ â””â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”˜ â””â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”˜
 ```
 
 *Full diagram: [docs/architecture.png](docs/architecture.png)*
@@ -85,8 +85,8 @@ The dashboard (`Network Overview`) shows:
 
 | Widget | Metric | Why it matters |
 |--------|--------|----------------|
-| Accepted traffic (bytes/min) | Bytes × ACCEPT filter | Baseline normal traffic |
-| Rejected traffic (count/min) | Packets × REJECT filter | Unexpected blocks = misconfigured SGs |
+| Accepted traffic (bytes/min) | Bytes Ã— ACCEPT filter | Baseline normal traffic |
+| Rejected traffic (count/min) | Packets Ã— REJECT filter | Unexpected blocks = misconfigured SGs |
 | Top talkers | Bytes by srcaddr | Spot anomalous instances |
 | Inbound vs outbound | Direction split | Asymmetry can indicate exfiltration |
 
@@ -138,7 +138,7 @@ vpc_id = ""   # Leave blank to create a test VPC, or provide an existing VPC ID
 
 ## Logs Insights Queries
 
-Pre-built queries are in [`queries/`](queries/). Run them in CloudWatch → Logs Insights → select `/vpc/flow-logs`.
+Pre-built queries are in [`queries/`](queries/). Run them in CloudWatch â†’ Logs Insights â†’ select `/vpc/flow-logs`.
 
 ### Top Talkers (highest traffic sources)
 
@@ -192,7 +192,7 @@ fields srcaddr, dstaddr, bytes, start, end
 
 1. Run the "Rejected Connections" query
 2. Filter for `dstport = 3306` (MySQL) or `dstport = 5432` (PostgreSQL)
-3. Check `srcaddr` — is it the app server's IP?
+3. Check `srcaddr` â€” is it the app server's IP?
 4. If REJECT: the security group or NACL is blocking the connection. Check SG rules on the DB
 5. If ACCEPT (but app still fails): the TCP connection reached the DB. Problem is application-layer, not network
 6. Check the timestamp range of failures against CloudWatch alarm history
@@ -214,20 +214,20 @@ Disable flow logs when not actively monitoring to reduce costs.
 ## Production Considerations
 
 - For high-traffic VPCs, send flow logs to S3 instead of CloudWatch (much cheaper at scale)
-- Use Athena to query S3 flow logs with SQL — faster for forensics than Logs Insights
+- Use Athena to query S3 flow logs with SQL â€” faster for forensics than Logs Insights
 - In a multi-account org, aggregate flow logs to a dedicated security/logging account
-- Add GuardDuty — it consumes VPC Flow Logs automatically and adds ML-based threat detection
+- Add GuardDuty â€” it consumes VPC Flow Logs automatically and adds ML-based threat detection
 - For HIPAA: 6-year log retention, CloudTrail, and flow log integrity validation required
 
 ## What I Learned
 
-- VPC Flow Logs capture at the ENI level, not the instance level — one instance with multiple ENIs generates multiple log streams
-- `REJECT` in a flow log means a security group or NACL blocked the traffic. `ACCEPT` with no response from the application means the network path worked but the app didn't respond — two completely different problems
-- The IAM role for Flow Logs needs `logs:CreateLogGroup`, `logs:CreateLogStream`, and `logs:PutLogEvents` — and it needs to trust the `vpc-flow-logs.amazonaws.com` service principal, not EC2
-- Flow logs have a ~10-minute delay — they're not real-time. For real-time traffic analysis, you'd use Traffic Mirroring to a packet capture instance
+- VPC Flow Logs capture at the ENI level, not the instance level â€” one instance with multiple ENIs generates multiple log streams
+- `REJECT` in a flow log means a security group or NACL blocked the traffic. `ACCEPT` with no response from the application means the network path worked but the app didn't respond â€” two completely different problems
+- The IAM role for Flow Logs needs `logs:CreateLogGroup`, `logs:CreateLogStream`, and `logs:PutLogEvents` â€” and it needs to trust the `vpc-flow-logs.amazonaws.com` service principal, not EC2
+- Flow logs have a ~10-minute delay â€” they're not real-time. For real-time traffic analysis, you'd use Traffic Mirroring to a packet capture instance
 
 ## Related Projects
 
-- [aws-hybrid-vpn-lab](https://github.com/SalamoneJack/aws-hybrid-vpn-lab) — Attach flow logs to the VPN lab VPCs
-- [aws-multi-vpc-hub-spoke](https://github.com/SalamoneJack/aws-multi-vpc-hub-spoke) — Monitor each VPC in the hub-spoke topology
-- [aws-ha-web-app](https://github.com/SalamoneJack/aws-ha-web-app) — Application-tier traffic monitoring
+- [aws-hybrid-vpn-lab](https://github.com/SalamoneJack/aws-hybrid-vpn-lab) â€” Attach flow logs to the VPN lab VPCs
+- [aws-multi-vpc-hub-spoke](https://github.com/SalamoneJack/aws-multi-vpc-hub-spoke) â€” Monitor each VPC in the hub-spoke topology
+- [aws-ha-web-app](https://github.com/SalamoneJack/aws-ha-web-app) â€” Application-tier traffic monitoring
