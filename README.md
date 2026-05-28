@@ -85,8 +85,8 @@ The dashboard (`Network Overview`) shows:
 
 | Widget | Metric | Why it matters |
 |--------|--------|----------------|
-| Accepted traffic (bytes/min) | Bytes Ã— ACCEPT filter | Baseline normal traffic |
-| Rejected traffic (count/min) | Packets Ã— REJECT filter | Unexpected blocks = misconfigured SGs |
+| Accepted traffic (bytes/min) | Bytes × ACCEPT filter | Baseline normal traffic |
+| Rejected traffic (count/min) | Packets × REJECT filter | Unexpected blocks = misconfigured SGs |
 | Top talkers | Bytes by srcaddr | Spot anomalous instances |
 | Inbound vs outbound | Direction split | Asymmetry can indicate exfiltration |
 
@@ -138,7 +138,7 @@ vpc_id = ""   # Leave blank to create a test VPC, or provide an existing VPC ID
 
 ## Logs Insights Queries
 
-Pre-built queries are in [`queries/`](queries/). Run them in CloudWatch â†’ Logs Insights â†’ select `/vpc/flow-logs`.
+Pre-built queries are in [`queries/`](queries/). Run them in CloudWatch → Logs Insights → select `/vpc/flow-logs`.
 
 ### Top Talkers (highest traffic sources)
 
